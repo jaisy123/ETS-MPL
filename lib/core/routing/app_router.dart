@@ -7,7 +7,7 @@ import '../../features/product/presentation/pages/splash_page.dart';
 import '../../features/product/presentation/pages/product_page.dart';
 import '../../features/product/presentation/pages/detail_page.dart';
 import '../../features/product/presentation/pages/crypto_page.dart';
-import '../../features/product/presentation/pages/native_page.dart';
+import '../../features/native/presentation/pages/native_page.dart';
 import '../../features/todo/presentation/pages/todo_page.dart';
 import '../../features/product/presentation/cubit/product_cubit.dart';
 import '../di/injection.dart';
@@ -15,14 +15,11 @@ import '../di/injection.dart';
 class AppRouter {
   static final router = GoRouter(
     // LOGIKA NIM: Aplikasi harus dimulai dari Splash Screen (Delay 6 detik)
-    initialLocation: '/splash', 
-    
+    initialLocation: '/splash',
+
     routes: [
       // Halaman Splash (Identitas Personal)
-      GoRoute(
-        path: '/splash',
-        builder: (context, state) => const SplashPage(),
-      ),
+      GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
 
       // Halaman Utama (Katalog Produk)
       GoRoute(
@@ -30,7 +27,7 @@ class AppRouter {
         builder: (context, state) {
           return BlocProvider(
             // Meminta Cubit dari Get_it dan langsung mengambil data API
-            create: (context) => locator<ProductCubit>()..fetchAllProducts(), 
+            create: (context) => locator<ProductCubit>()..fetchAllProducts(),
             child: const ProductPage(),
           );
         },
@@ -46,21 +43,20 @@ class AppRouter {
       ),
 
       // Fitur Real-time Crypto (WebSocket & Isolate NIM 66)
-      GoRoute(
-        path: '/crypto', 
-        builder: (context, state) => const CryptoPage(),
-      ),
-      
+      GoRoute(path: '/crypto', builder: (context, state) => const CryptoPage()),
+
       // Fitur Native (Baterai & Toast Kotlin)
-      GoRoute(
-        path: '/native', 
-        builder: (context, state) => const NativePage(),
-      ),
+      GoRoute(path: '/native', builder: (context, state) => const NativePage()),
 
       // Fitur Bookmark/Todo (Isar Database Reaktif)
       GoRoute(
-        path: '/todo', 
-        builder: (context, state) => const TodoPage(),
+        path: 'detail/:id',
+        builder: (context, state) {
+          // Ambil ID dari URL
+          final id = state.pathParameters['id']!;
+          // Masukkan ke parameter productId milik DetailPage
+          return DetailPage(productId: id);
+        },
       ),
     ],
 
