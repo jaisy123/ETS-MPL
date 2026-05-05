@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
-import 'package:flutter/foundation.dart'; // Untuk compute
+import 'package:flutter/foundation.dart';
 
-// 1. FUNGSI BERAT DI LUAR CLASS (Wajib untuk Isolate)[cite: 7]
+// 1. FUNGSI BERAT DI LUAR CLASS (Isolate)
 int tugasMenghitungBerat(int jumlahLooping) {
   int hasil = 0;
   for (int i = 0; i < jumlahLooping; i++) {
@@ -22,11 +22,12 @@ class CryptoPage extends StatefulWidget {
 class _CryptoPageState extends State<CryptoPage> {
   late WebSocketChannel _channel;
   String _currentPrice = '0.00';
+  bool _isCalculating = false;
 
   @override
   void initState() {
     super.initState();
-    // MENGGUNAKAN API BINANCE (Temanmu)[cite: 7]
+    // MENGGUNAKAN API BINANCE
     _channel = WebSocketChannel.connect(
       Uri.parse('wss://data-stream.binance.vision/ws/btcusdt@trade'),
     );
@@ -34,112 +35,136 @@ class _CryptoPageState extends State<CryptoPage> {
 
   @override
   void dispose() {
-    _channel.sink.close(); // Cegah kebocoran memori[cite: 7]
+    _channel.sink.close(); // Cegah kebocoran memori
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryColor = Color(0xFF101820); // Deep Navy
+    const Color accentColor = Color(0xFF8CFF00);  // Lime Green
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8), // Background halus
+      backgroundColor: primaryColor,
       appBar: AppBar(
-        title: const Text('Jaisy Crypto Hub', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'JAISY CRYPTO HUB',
+          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, fontSize: 16),
+        ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
       ),
-      body: Column(
-        children: [
-          // Header Info Personal
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            decoration: const BoxDecoration(
-              color: Colors.teal,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Column(
-              children: [
-                const Text('Monitoring BTC Real-time', style: TextStyle(color: Colors.white70)),
-                const SizedBox(height: 5),
-                // LOGIKA PERSONAL: Nama & NIM Kamu
-                const Text(
-                  'Jaisy - 20123066',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [primaryColor, primaryColor.withValues(alpha: 0.8)],
           ),
-
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
+        ),
+        child: Column(
+          children: [
+            // Header Info Personal (Glassmorphism look)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Kartu Harga Premium
-                  _buildPriceCard(),
-
-                  const SizedBox(height: 30),
-
-                  // Indikator UI Lancar (WAJIB ETS: Tidak boleh macet saat Isolate jalan)
-                  const Text('UI Responsiveness Check:', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 15),
-                  const CircularProgressIndicator(
-                    strokeWidth: 4,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('LIVE MONITORING', style: TextStyle(color: accentColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                      Text('BTC / USDT TRADE', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    ],
                   ),
-
-                  const SizedBox(height: 40),
-
-                  // Tombol Kalkulasi dengan Style Konsisten
-                  _buildCalculateButton(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text('OPERATOR', style: TextStyle(color: Colors.white38, fontSize: 10)),
+                      Text('JAISY - 66', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // Kartu Harga Real-time
+                    _buildModernPriceCard(accentColor),
+
+                    const SizedBox(height: 40),
+
+                    // Indikator Responsivitas UI
+                    const Text('SYSTEM STABILITY CHECK', style: TextStyle(color: Colors.white38, fontSize: 10, letterSpacing: 2)),
+                    const SizedBox(height: 15),
+                    CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(_isCalculating ? Colors.redAccent : accentColor),
+                    ),
+
+                    const SizedBox(height: 50),
+
+                    // Tombol Kalkulasi Isolate
+                    _buildNeonButton(primaryColor, accentColor),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPriceCard() {
+  Widget _buildModernPriceCard(Color accent) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(30),
+      padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: accent.withValues(alpha: 0.3), width: 1),
         boxShadow: [
-          BoxShadow(
-            color: Colors.teal.withValues(alpha: .1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          )
+          BoxShadow(color: accent.withValues(alpha: 0.05), blurRadius: 40, spreadRadius: -10),
         ],
       ),
       child: Column(
         children: [
-          const Icon(Icons.currency_bitcoin_rounded, size: 80, color: Colors.orange),
-          const SizedBox(height: 15),
-          const Text('BTC / USDT', style: TextStyle(fontSize: 16, color: Colors.black54)),
-          const SizedBox(height: 10),
+          Icon(Icons.auto_graph_rounded, size: 50, color: accent),
+          const SizedBox(height: 20),
           StreamBuilder(
             stream: _channel.stream,
             builder: (context, snapshot) {
-              if (snapshot.hasError) return const Text('Koneksi Terputus!', style: TextStyle(color: Colors.red));
-              if (!snapshot.hasData) return const CircularProgressIndicator();
+              if (snapshot.hasError) return const Text('LINK ERROR', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold));
+              if (!snapshot.hasData) return const CircularProgressIndicator(color: Colors.white24);
 
               final Map<String, dynamic> dataJson = jsonDecode(snapshot.data.toString());
-              final String price = dataJson['p'] ?? '0.00'; // Format Binance memakai key 'p'[cite: 7]
+              final String price = dataJson['p'] ?? '0.00';
               _currentPrice = double.parse(price).toStringAsFixed(2);
 
-              return Text(
-                '\$ $_currentPrice',
-                style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.teal),
+              return Column(
+                children: [
+                  Text(
+                    '\$ $_currentPrice',
+                    style: const TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: -1),
+                  ),
+                  const SizedBox(height: 5),
+                  Text('REAL-TIME MARKET DATA', style: TextStyle(color: accent.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.bold)),
+                ],
               );
             },
           ),
@@ -148,39 +173,51 @@ class _CryptoPageState extends State<CryptoPage> {
     );
   }
 
-  Widget _buildCalculateButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.teal,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 5,
-        ),
-        onPressed: () async {
-          debugPrint("Memulai Isolate Jaisy NIM 66...");
-          
-          // LOGIKA PERSONAL: 66 * 10.000.000 = 660.000.000[cite: 8]
-          const int nimLoopFactor = 66 * 10000000;
-
-          // Menjalankan Isolate agar UI tidak freeze[cite: 7]
-          final result = await compute(tugasMenghitungBerat, nimLoopFactor);
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Kalkulasi NIM 66 Selesai: $result'),
-                backgroundColor: Colors.teal,
-                behavior: SnackBarBehavior.floating,
+  Widget _buildNeonButton(Color primary, Color accent) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 65,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isCalculating ? Colors.transparent : accent,
+              foregroundColor: primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+                side: BorderSide(color: accent, width: 2),
               ),
-            );
-          }
-        },
-        icon: const Icon(Icons.calculate),
-        label: const Text('KALKULASI PAJAK (ISOLATE NIM 66)', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+              elevation: _isCalculating ? 0 : 10,
+              shadowColor: accent.withValues(alpha: 0.5),
+            ),
+            onPressed: _isCalculating ? null : () async {
+              setState(() => _isCalculating = true);
+              debugPrint("Memulai Isolate Jaisy NIM 66...");
+              
+              const int nimLoopFactor = 66 * 10000000;
+              final result = await compute(tugasMenghitungBerat, nimLoopFactor);
+
+              setState(() => _isCalculating = false);
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('COMPUTATION SUCCESS: $result', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    backgroundColor: accent,
+                    margin: const EdgeInsets.all(20),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: _isCalculating 
+              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : const Text('EXECUTE HEAVY CALCULATION (NIM 66)', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text('ISOLATE WILL PREVENT UI FREEZING', style: TextStyle(color: Colors.white24, fontSize: 9, letterSpacing: 1)),
+      ],
     );
   }
 }
