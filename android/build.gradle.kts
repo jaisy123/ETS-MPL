@@ -15,10 +15,17 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+// Letakkan ini di baris paling bawah file android/app/build.gradle
 subprojects {
-    project.evaluationDependsOn(":app")
-}
-
-tasks.register<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory)
+    afterEvaluate {
+        val project = this
+        if (project.plugins.hasPlugin("com.android.library") || project.plugins.hasPlugin("com.android.application")) {
+            val androidExtension = project.extensions.findByType(com.android.build.gradle.BaseExtension::class.java)
+            androidExtension?.apply {
+                if (namespace == null) {
+                    namespace = project.group.toString()
+                }
+            }
+        }
+    }
 }

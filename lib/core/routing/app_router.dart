@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Pastikan path import ini sesuai dengan struktur folder di VS Code kamu
 import '../../features/product/presentation/pages/splash_page.dart';
 import '../../features/product/presentation/pages/product_page.dart';
 import '../../features/product/presentation/pages/detail_page.dart';
@@ -14,53 +13,53 @@ import '../di/injection.dart';
 
 class AppRouter {
   static final router = GoRouter(
-    // LOGIKA NIM: Aplikasi harus dimulai dari Splash Screen (Delay 6 detik)
+    // LOGIKA NIM: Mulai dari Splash Screen (Delay 6 detik sesuai NIM 66)
     initialLocation: '/splash',
 
     routes: [
-      // Halaman Splash (Identitas Personal)
-      GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
-
-      // Halaman Utama (Katalog Produk)
+      // 1. Splash Screen
       GoRoute(
-        path: '/',
-        builder: (context, state) {
-          return BlocProvider(
-            // Meminta Cubit dari Get_it dan langsung mengambil data API
-            create: (context) => locator<ProductCubit>()..fetchAllProducts(),
-            child: const ProductPage(),
-          );
-        },
+        path: '/splash', 
+        builder: (context, state) => const SplashPage()
       ),
 
-      // Halaman Detail Produk
+      // 2. Katalog Produk (Home)
+      GoRoute(
+        path: '/',
+        builder: (context, state) => BlocProvider(
+          create: (context) => locator<ProductCubit>()..fetchAllProducts(),
+          child: const ProductPage(),
+        ),
+      ),
+
+      // 3. Detail Produk
       GoRoute(
         path: '/detail/:id',
         builder: (context, state) {
-          final productId = state.pathParameters['id'] ?? '';
-          return DetailPage(productId: productId);
-        },
-      ),
-
-      // Fitur Real-time Crypto (WebSocket & Isolate NIM 66)
-      GoRoute(path: '/crypto', builder: (context, state) => const CryptoPage()),
-
-      // Fitur Native (Baterai & Toast Kotlin)
-      GoRoute(path: '/native', builder: (context, state) => const NativePage()),
-
-      // Fitur Bookmark/Todo (Isar Database Reaktif)
-      GoRoute(
-        path: 'detail/:id',
-        builder: (context, state) {
-          // Ambil ID dari URL
           final id = state.pathParameters['id']!;
-          // Masukkan ke parameter productId milik DetailPage
           return DetailPage(productId: id);
         },
       ),
+
+      // 4. Monitoring Crypto (WebSocket & Isolate)
+      GoRoute(
+        path: '/crypto', 
+        builder: (context, state) => const CryptoPage()
+      ),
+
+      // 5. Integrasi Native (Battery & Toast)
+      GoRoute(
+        path: '/native', 
+        builder: (context, state) => const NativePage()
+      ),
+
+      // 6. Bookmark/Todo (Isar Database)
+      GoRoute(
+        path: '/todo', 
+        builder: (context, state) => const TodoPage()
+      ),
     ],
 
-    // Fallback jika user mengakses halaman yang tidak ada
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Error 404')),
       body: const Center(child: Text('Halaman tidak ditemukan!')),
